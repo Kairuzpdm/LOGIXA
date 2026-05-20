@@ -1,0 +1,57 @@
+.mapContainer {
+  height: 100%;
+  width: 100%;
+  min-height: 400px;
+}
+
+.popupContent {
+  color: #0b0f19;
+  font-family: 'Outfit', sans-serif;
+}
+
+.popupTitle {
+  font-weight: 700;
+}
+
+.popupText {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.clientPopup {
+  color: #0b0f19;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.clientTitle {
+  font-weight: 700;
+}
+
+.clientAddress {
+  font-size: 12px;
+  margin: 4px 0;
+}
+
+.popupRow {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.statusBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #0b0f19;
+}
+
+.driverPopup {
+  color: #0b0f19;
+  font-family: 'Outfit', sans-serif;
+}
+
+.driverTitle {
+  font-weight: 700;
+  color: #7f00ff;
+}

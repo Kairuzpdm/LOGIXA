@@ -1,0 +1,84 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100vw;
+  padding: 20px;
+  background-color: #0b0f19;
+  background: radial-gradient(circle at top right, rgba(0, 242, 254, 0.08), transparent 40%), radial-gradient(circle at bottom left, rgba(127, 0, 255, 0.08), transparent 40%);
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.logoBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(0,242,254,0.1) 0%, rgba(79,172,254,0.1) 100%);
+  border: 1px solid rgba(0, 242, 254, 0.2);
+  color: #00f2fe;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 800;
+  font-family: var(--font-title);
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.divider {
+  margin-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 16px;
+}
+
+.dividerText {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.submitButton {
+  margin-top: 8px;
+}
+
+.alertMargin {
+  margin-bottom: 16px;
+}
+
+.demoActions {
+  display: flex;
+  gap: 10px;
+}
+
+.demoButton {
+  flex: 1;
+}

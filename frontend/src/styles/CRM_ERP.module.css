@@ -1,0 +1,149 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  padding: 24px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.tabs {
+  display: flex;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding-bottom: 12px;
+}
+
+.tabButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  padding-bottom: 8px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.tabButton.active {
+  color: #00f2fe;
+  border-bottom: 2px solid #00f2fe;
+}
+
+.tableHeaderProducts {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
+  padding: 12px 16px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+  font-weight: 700;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.tableHeaderClients {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr 2fr 1fr;
+  padding: 12px 16px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+  font-weight: 700;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.tableRowProducts,
+.tableRowClients {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  align-items: center;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.tableRowProducts { display: grid; grid-template-columns: 1fr 2fr 1fr 1fr 1fr; }
+.tableRowClients { display: grid; grid-template-columns: 2fr 2fr 1.5fr 2fr 1fr; }
+
+.tableRowProducts:hover, .tableRowClients:hover { background-color: rgba(255,255,255,0.01); }
+
+.emptyMessage { padding: 32px; text-align: center; color: #6b7280; }
+
+.actionsRight { display: flex; justify-content: flex-end; }
+
+.sectionBody { display: flex; flex-direction: column; }
+
+.emptyMessage { padding: 32px; text-align: center; color: #6b7280; }
+
+.modalForm { display: flex; flex-direction: column; gap: 16px; }
+
+.modalRow { display: flex; gap: 16px; }
+
+.coordsBox {
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 12px;
+  background-color: rgba(255,255,255,0.01);
+}
+
+.coordsHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+.coordsLabel { font-size: 13px; font-weight: 700; color: #f3f4f6; }
+
+.coordsRow { display: flex; gap: 16px; }
+
+.formFooter { display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; }
+
+.alignRight { text-align: right; }
+
+.flexGrow {
+  flex: 1;
+}
+
+.skuLabel {
+  font-family: monospace;
+  font-weight: 700;
+  color: #4facfe;
+}
+
+.productName {
+  font-weight: 600;
+}
+
+.productPrice {
+  color: #00ff87;
+  font-weight: 700;
+}
+
+.stockValue {
+  font-weight: 700;
+}
+
+.stockCritical {
+  color: #ff007f;
+}
+
+.lowBadge {
+  font-size: 10px;
+  color: #ff007f;
+  font-weight: 800;
+}
+
+.dangerIcon {
+  color: #ff007f;
+}
+
+.clientName {
+  font-weight: 600;
+}
+
+.clientAddress {
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.clientCoords {
+  font-family: monospace;
+  color: #00f2fe;
+  font-size: 12px;
+}

@@ -1,0 +1,236 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.mainLayout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  flex: 1;
+  min-height: 500px;
+}
+
+.mapWrapper {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 380px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.orderCard {
+  padding: 12px;
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.orderMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.orderInfo {
+  font-size: 13px;
+  color: #f3f4f6;
+}
+
+.orderFooter {
+  font-size: 12px;
+  color: #9ca3af;
+  border-top: 1px solid rgba(255,255,255,0.03);
+  padding-top: 6px;
+  margin-top: 2px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerTitle {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.headerSubtitle {
+  font-size: 13px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+.kpiCard {
+  padding: 16px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cardHeaderLabel {
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.kpiValue {
+  font-size: 28px;
+  font-weight: 800;
+  margin-top: 8px;
+}
+
+.primaryIcon {
+  color: #00f2fe;
+}
+
+.warningIcon {
+  color: #f9d976;
+}
+
+.infoIcon {
+  color: #4facfe;
+}
+
+.successIcon {
+  color: #00ff87;
+}
+
+.dangerIcon {
+  color: #ff007f;
+}
+
+.pendingValue {
+  color: #f9d976;
+}
+
+.routeValue {
+  color: #4facfe;
+}
+
+.successValue {
+  color: #00ff87;
+}
+
+.dangerValue {
+  color: #ff007f;
+}
+
+.mapCard {
+  height: 100%;
+  min-height: 480px;
+}
+
+.dispatchCard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 550px;
+  overflow-y: auto;
+}
+
+.orderId {
+  font-size: 13px;
+  font-weight: 700;
+  color: #00f2fe;
+}
+
+.orderStatus {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.pendiente {
+  background-color: rgba(249, 217, 118, 0.12);
+  color: #f9d976;
+}
+
+.en_ruta {
+  background-color: rgba(79, 172, 254, 0.12);
+  color: #4facfe;
+}
+
+.entregado {
+  background-color: rgba(0, 255, 135, 0.12);
+  color: #00ff87;
+}
+
+.orderAddress {
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.orderStatusNote {
+  font-size: 11px;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+.successNote {
+  color: #00ff87;
+  font-style: normal;
+}
+
+.fullWidthButton {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.orderList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.orderEmpty {
+  padding: 24px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.modalGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.assignmentBox {
+  font-size: 13px;
+  background-color: rgba(255,255,255,0.02);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
