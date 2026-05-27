@@ -127,7 +127,7 @@ const Repartidores = () => {
         setSimulatingOrderId(null);
         setAlertMsg({ 
           type: 'success', 
-          text: `🚨 ¡Has llegado al destino! Ya puedes registrar la entrega física con el cliente ${order.cliente_nombre}.` 
+          text: `¡Has llegado al destino! Ya puedes registrar la entrega física con el cliente ${order.cliente_nombre}.` 
         });
       },
       7000 // 7 segundos de viaje de demostración

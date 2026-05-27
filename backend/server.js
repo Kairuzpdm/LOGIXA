@@ -14,7 +14,7 @@ app.use(express.json());
 app.get('/', (req, res) => {
   res.status(200).json({
     status: 'success',
-    message: '🚀 Servidor de Logística Urbana y ERP/CRM corriendo correctamente.',
+    message: 'Servidor de Logística Urbana y ERP/CRM corriendo correctamente.',
     version: '1.0.0'
   });
 });
@@ -32,7 +32,7 @@ app.use(errorHandler);
 // Iniciar Servidor
 app.listen(PORT, () => {
   console.log(`================================================================`);
-  console.log(`🚀 Servidor ejecutándose en: http://localhost:${PORT}`);
-  console.log(`📡 Rutas API expuestas bajo: http://localhost:${PORT}/api/...`);
+  console.log(`Servidor ejecutándose en: http://localhost:${PORT}`);
+  console.log(`Rutas API expuestas bajo: http://localhost:${PORT}/api/...`);
   console.log(`================================================================`);
 });

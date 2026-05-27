@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Package, Users, Plus, Trash2, Tag, Smartphone, MapPin, DollarSign } from 'lucide-react';
+import { Package, Users, Plus, Trash2, Tag, Smartphone, MapPin, DollarSign, Edit } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import useFetch from '../hooks/useFetch';
 import Card from '../components/common/Card';
@@ -7,6 +7,7 @@ import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Alert from '../components/common/Alert';
 import Modal from '../components/common/Modal';
+import LocationPicker from '../components/common/LocationPicker';
 import styles from '../styles/CRM_ERP.module.css';
 
 const CRM_ERP = () => {
@@ -16,6 +17,7 @@ const CRM_ERP = () => {
   const [activeSubTab, setActiveSubTab] = useState('products'); // 'products' o 'clients'
   const [alertMsg, setAlertMsg] = useState({ type: 'success', text: '' });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   // Estados de los Formularios
   const [prodForm, setProdForm] = useState({ nombre: '', descripcion: '', precio: '', stock: '', sku: '' });
@@ -78,6 +80,37 @@ const CRM_ERP = () => {
       const res = await request(`/productos/${id}`, { method: 'DELETE' });
       if (res.status === 'success') {
         setAlertMsg({ type: 'success', text: 'Producto eliminado correctamente.' });
+        fetchProducts();
+      }
+    } catch (err) {
+      setAlertMsg({ type: 'error', text: err.message });
+    }
+  };
+
+  const handleEditProduct = (product) => {
+    setEditingProduct(product.id);
+    setProdForm({
+      nombre: product.nombre,
+      descripcion: product.descripcion,
+      precio: product.precio,
+      stock: product.stock,
+      sku: product.sku
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleUpdateProduct = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await request(`/productos/${editingProduct}`, {
+        method: 'PUT',
+        body: prodForm
+      });
+      if (res.status === 'success') {
+        setAlertMsg({ type: 'success', text: 'Producto actualizado exitosamente.' });
+        setProdForm({ nombre: '', descripcion: '', precio: '', stock: '', sku: '' });
+        setEditingProduct(null);
+        setIsModalOpen(false);
         fetchProducts();
       }
     } catch (err) {
@@ -154,11 +187,13 @@ const CRM_ERP = () => {
                 <div key={prod.id} className={styles.tableRowProducts}>
                   <span className={styles.skuLabel}>{prod.sku}</span>
                   <span className={styles.productName}>{prod.nombre}</span>
-                  <span className={styles.productPrice}>€{parseFloat(prod.precio).toFixed(2)}</span>
+                  <span className={styles.productPrice}>Bs. {parseFloat(prod.precio).toFixed(2)}</span>
                   <span className={`${styles.stockValue} ${prod.stock <= 5 ? styles.stockCritical : ''}`.trim()}>
                     {prod.stock} {prod.stock <= 5 && <span className={styles.lowBadge}>(BAJO)</span>}
                   </span>
                   <div className={styles.actionsRight}>
+                    <Button variant="outline" size="sm" onClick={() => handleEditProduct(prod)} icon={Edit} className={styles.editBtn}>
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => handleDeleteProduct(prod.id)}>
                       <Trash2 size={14} className={styles.dangerIcon} />
                     </Button>
@@ -218,12 +253,16 @@ const CRM_ERP = () => {
       {/* MODAL DE CREACIÓN DINÁMICO */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={activeSubTab === 'products' ? 'Añadir Producto al ERP' : 'Registrar Cliente en CRM'}
-        size="md"
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingProduct(null);
+          setProdForm({ nombre: '', descripcion: '', precio: '', stock: '', sku: '' });
+        }}
+        title={editingProduct ? 'Editar Producto en ERP' : activeSubTab === 'products' ? 'Añadir Producto al ERP' : 'Registrar Cliente en CRM'}
+        size={activeSubTab === 'products' ? 'md' : 'lg'}
       >
         {activeSubTab === 'products' ? (
-          <form onSubmit={handleProductSubmit} className={styles.modalForm}>
+          <form onSubmit={editingProduct ? handleUpdateProduct : handleProductSubmit} className={styles.modalForm}>
             <Input
               label="Nombre del Producto"
               placeholder="Ej. Silla Ergonómica Premium"
@@ -242,7 +281,7 @@ const CRM_ERP = () => {
               />
               <Input
                 type="number"
-                label="Precio unitario (€)"
+                label="Precio unitario (Bs.)"
                 placeholder="Ej. 149.99"
                 value={prodForm.precio}
                 onChange={e => setProdForm({...prodForm, precio: e.target.value})}
@@ -266,8 +305,14 @@ const CRM_ERP = () => {
               onChange={e => setProdForm({...prodForm, descripcion: e.target.value})}
             />
             <div className={styles.formFooter}>
-              <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-              <Button type="submit" variant="primary" disabled={loading}>Guardar Producto</Button>
+              <Button variant="secondary" onClick={() => {
+                setIsModalOpen(false);
+                setEditingProduct(null);
+                setProdForm({ nombre: '', descripcion: '', precio: '', stock: '', sku: '' });
+              }}>Cancelar</Button>
+              <Button type="submit" variant="primary" disabled={loading}>
+                {editingProduct ? 'Actualizar Producto' : 'Guardar Producto'}
+              </Button>
             </div>
           </form>
         ) : (
@@ -296,42 +341,19 @@ const CRM_ERP = () => {
                 className={styles.flexGrow}
               />
             </div>
-            <Input
-              label="Dirección de Envío"
-              placeholder="Ej. Avenida La Plata, 123, Tarija"
-              value={clientForm.direccion}
-              onChange={e => setClientForm({...clientForm, direccion: e.target.value})}
-              required
+            <LocationPicker
+              latitud={clientForm.latitud}
+              longitud={clientForm.longitud}
+              direccion={clientForm.direccion}
+              onLocationSelect={(location) => {
+                setClientForm(prev => ({
+                  ...prev,
+                  latitud: location.latitud,
+                  longitud: location.longitud,
+                  direccion: location.nombre || prev.direccion
+                }));
+              }}
             />
-
-            <div className={styles.coordsBox}>
-              <div className={styles.coordsHeader}>
-                <span className={styles.coordsLabel}>Coordenadas GPS (Para el Mapa)</span>
-                <Button variant="outline" size="sm" onClick={fillTarijaCoordinates}>
-                  📍 Simular GPS Tarija
-                </Button>
-              </div>
-              <div className={styles.coordsRow}>
-                <Input
-                  type="number"
-                  label="Latitud"
-                  placeholder="Ej. -21.53555"
-                  value={clientForm.latitud}
-                  onChange={e => setClientForm({...clientForm, latitud: e.target.value})}
-                  required
-                  className={styles.flexGrow}
-                />
-                <Input
-                  type="number"
-                  label="Longitud"
-                  placeholder="Ej. -64.72900"
-                  value={clientForm.longitud}
-                  onChange={e => setClientForm({...clientForm, longitud: e.target.value})}
-                  required
-                  className={styles.flexGrow}
-                />
-              </div>
-            </div>
 
             <div className={styles.formFooter}>
               <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancelar</Button>

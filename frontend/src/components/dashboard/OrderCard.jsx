@@ -20,7 +20,7 @@ const OrderCard = ({ order, onAssign }) => {
       </div>
 
       <div className={styles.orderFooter}>
-        📦 {order.cantidad}x {order.producto_nombre}
+         {order.cantidad}x {order.producto_nombre}
       </div>
 
       {order.estado === 'pendiente' && (
@@ -37,7 +37,7 @@ const OrderCard = ({ order, onAssign }) => {
 
       {order.estado === 'en_ruta' && (
         <div className={styles.orderStatusNote}>
-          🚚 Asignado a: {order.repartidor_nombre}
+          Asignado a: {order.repartidor_nombre}
         </div>
       )}
 

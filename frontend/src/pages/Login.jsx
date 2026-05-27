@@ -42,17 +42,6 @@ const Login = () => {
     }
   };
 
-  // Helper para auto-completar perfiles demo
-  const fillCredentials = (role) => {
-    if (role === 'admin') {
-      setEmail('admin@logistica.com');
-      setPassword('admin123');
-    } else {
-      setEmail('carlos.repartidor@logistica.com');
-      setPassword('driver123');
-    }
-  };
-
   return (
     <div className={styles.container}>
       <Card 
@@ -112,30 +101,6 @@ const Login = () => {
             {loading ? 'Validando...' : 'Entrar al Sistema'}
           </Button>
         </form>
-
-        <div className={styles.divider}>
-          <p className={styles.dividerText}>
-            Cuentas de Demostración Rápida
-          </p>
-          <div className={styles.demoActions}>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              onClick={() => fillCredentials('admin')}
-              className={styles.demoButton}
-            >
-              💼 Administrador
-            </Button>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              onClick={() => fillCredentials('driver')}
-              className={styles.demoButton}
-            >
-              🏍️ Repartidor Moto
-            </Button>
-          </div>
-        </div>
       </Card>
     </div>
   );

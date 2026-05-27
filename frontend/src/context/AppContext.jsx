@@ -13,7 +13,7 @@ export const AppProvider = ({ children }) => {
   const { request } = useFetch();
 
   // Almacén Central (Coordenadas fijas en Tarija, Bolivia)
-  const warehouseCoords = { lat: -21.53555, lng: -64.7290 };
+  const warehouseCoords = { lat: -21.53699, lng: -64.74173 };
 
   // Intentar cargar la sesión del usuario al iniciar
   useEffect(() => {
@@ -89,13 +89,6 @@ export const AppProvider = ({ children }) => {
       fetchOrders();
       fetchDrivers();
       fetchLocations();
-      
-      // Polling de posiciones cada 5 segundos para actualización en tiempo real en Dashboard de Admin
-      const interval = setInterval(() => {
-        fetchLocations();
-      }, 5000);
-
-      return () => clearInterval(interval);
     }
   }, [user]);
 

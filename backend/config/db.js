@@ -16,11 +16,11 @@ const pool = mysql.createPool({
 (async () => {
   try {
     const connection = await pool.getConnection();
-    console.log('⚡ Conexión exitosa a la base de datos MySQL en XAMPP.');
+    console.log('Conexión exitosa a la base de datos MySQL en XAMPP.');
     connection.release();
   } catch (error) {
-    console.error('❌ Error crítico al conectar a MySQL:', error.message);
-    console.error('👉 Asegúrate de que XAMPP esté encendido y que el servicio de MySQL esté corriendo.');
+    console.error('Error crítico al conectar a MySQL:', error.message);
+    console.error('Asegúrate de que XAMPP esté encendido y que el servicio de MySQL esté corriendo.');
   }
 })();
 

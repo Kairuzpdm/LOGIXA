@@ -2,7 +2,7 @@
 // Evita repetir bloques try/catch repetitivos en controladores al centralizar las capturas
 
 const errorHandler = (err, req, res, next) => {
-  console.error('🔥 Error detectado en el servidor:', err.stack || err.message);
+  console.error('Error detectado en el servidor:', err.stack || err.message);
 
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Ocurrió un error interno en el servidor';

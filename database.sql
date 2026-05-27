@@ -72,7 +72,6 @@ CREATE TABLE IF NOT EXISTS ubicaciones_repartidores (
 INSERT INTO usuarios (nombre, email, password, rol) VALUES
 ('Administrador del Sistema', 'admin@logistica.com', '$2a$10$mdsXgcqMch1cp5HfugH7GOak6UO9gT3L0GGcxUF2BT5k8PIon1lVa', 'admin'),
 ('Carlos Gómez (Repartidor Moto)', 'carlos.repartidor@logistica.com', '$2a$10$XHkjIgSnCgGY7jb3Fyc4se9PaXLdXFX9NYRBG78ubnPxQQS6G22Qy', 'repartidor'),
-('Laura Pérez (Repartidor Bici)', 'laura.repartidor@logistica.com', '$2a$10$XHkjIgSnCgGY7jb3Fyc4se9PaXLdXFX9NYRBG78ubnPxQQS6G22Qy', 'repartidor');
 
 -- Insertar Productos en Inventario (ERP)
 INSERT INTO productos (nombre, descripcion, precio, stock, sku) VALUES

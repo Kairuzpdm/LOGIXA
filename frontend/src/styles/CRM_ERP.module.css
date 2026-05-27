@@ -69,7 +69,11 @@
 
 .emptyMessage { padding: 32px; text-align: center; color: #6b7280; }
 
-.actionsRight { display: flex; justify-content: flex-end; }
+.actionsRight { 
+  display: flex; 
+  justify-content: flex-end;
+  gap: 8px;
+}
 
 .sectionBody { display: flex; flex-direction: column; }
 
@@ -131,6 +135,10 @@
 
 .dangerIcon {
   color: #ff007f;
+}
+
+.editBtn {
+  color: #00f2fe !important;
 }
 
 .clientName {

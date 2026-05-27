@@ -27,13 +27,15 @@ const Dashboard = () => {
     driverLocations, 
     warehouseCoords, 
     fetchOrders, 
-    fetchProducts 
+    fetchProducts,
+    fetchLocations
   } = useApp();
 
   const { request, loading } = useFetch();
   
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isRefreshingLocations, setIsRefreshingLocations] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [alertMsg, setAlertMsg] = useState({ type: 'success', text: '' });
 
@@ -105,6 +107,12 @@ const Dashboard = () => {
     } catch (err) {
       setAlertMsg({ type: 'error', text: err.message });
     }
+  };
+
+  const handleRefreshLocations = async () => {
+    setIsRefreshingLocations(true);
+    await fetchLocations();
+    setIsRefreshingLocations(false);
   };
 
   // Preparar opciones de selectors
@@ -194,6 +202,8 @@ const Dashboard = () => {
           drivers={driverLocations}
           activeDriverLocations={activeDriverLocations}
           warehouseCoords={warehouseCoords}
+          onRefreshLocations={handleRefreshLocations}
+          isRefreshingLocations={isRefreshingLocations}
         />
 
         {/* Panel de Ordenes y Despacho */}

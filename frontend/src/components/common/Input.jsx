@@ -6,6 +6,7 @@ const Input = ({
   label,
   value,
   onChange,
+  onKeyPress,
   placeholder,
   name,
   disabled = false,
@@ -56,6 +57,7 @@ const Input = ({
             value={value}
             disabled={disabled}
             onChange={onChange}
+            onKeyPress={onKeyPress}
             placeholder={placeholder}
             className={controlClassName}
           />

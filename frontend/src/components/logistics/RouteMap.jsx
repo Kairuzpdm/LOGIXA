@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Pane, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import styles from '../../styles/RouteMap.module.css';
@@ -57,8 +57,79 @@ const driverIcon = L.icon({
   popupAnchor: [0, -18]
 });
 
+const normalizeNumber = (value) => typeof value === 'string' ? parseFloat(value) : value;
+
+const buildTrafficSafeRoute = (start, end) => {
+  const startLat = normalizeNumber(start[0]);
+  const startLng = normalizeNumber(start[1]);
+  const endLat = normalizeNumber(end[0]);
+  const endLng = normalizeNumber(end[1]);
+
+  if (startLat === endLat || startLng === endLng) {
+    return [[startLat, startLng], [endLat, endLng]];
+  }
+
+  return [[startLat, startLng], [startLat, endLng], [endLat, endLng]];
+};
+
+const fetchOsrmRoute = async (from, to) => {
+  const coords = `${from[1]},${from[0]};${to[1]},${to[0]}`;
+  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+  const response = await fetch(url);
+  const data = await response.json();
+
+  if (!data || data.code !== 'Ok' || !data.routes?.length) {
+    return null;
+  }
+
+  return data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+};
+
 const RouteMap = ({ orders = [], drivers = [], activeDriverLocations = {}, warehouseCoords }) => {
+  const [routes, setRoutes] = useState({});
   const mapCenter = [warehouseCoords.lat, warehouseCoords.lng];
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    const loadRoutes = async () => {
+      const activeOrders = orders.filter(order => order.estado === 'en_ruta' && order.repartidor_id);
+      if (!activeOrders.length) {
+        setRoutes({});
+        return;
+      }
+
+      const nextRoutes = {};
+      await Promise.all(activeOrders.map(async (order) => {
+        const liveLoc = activeDriverLocations[order.repartidor_id];
+        if (!liveLoc) return;
+
+        const startPoint = [warehouseCoords.lat, warehouseCoords.lng];
+        const driverPoint = [parseFloat(liveLoc.lat), parseFloat(liveLoc.lng)];
+        const clientPoint = [parseFloat(order.cliente_latitud), parseFloat(order.cliente_longitud)];
+
+        const [toDriverRoute, toClientRoute] = await Promise.all([
+          fetchOsrmRoute(startPoint, driverPoint),
+          fetchOsrmRoute(driverPoint, clientPoint)
+        ]);
+
+        nextRoutes[order.id] = {
+          toDriver: toDriverRoute || buildTrafficSafeRoute(startPoint, driverPoint),
+          toClient: toClientRoute || buildTrafficSafeRoute(driverPoint, clientPoint)
+        };
+      }));
+
+      if (!isCancelled) {
+        setRoutes(nextRoutes);
+      }
+    };
+
+    loadRoutes();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [orders, activeDriverLocations, warehouseCoords]);
 
   return (
     <MapContainer 
@@ -66,6 +137,7 @@ const RouteMap = ({ orders = [], drivers = [], activeDriverLocations = {}, wareh
       zoom={14} 
       className={`${styles.mapContainer} dark-tiles`}
     >
+      <Pane name="routePane" style={{ zIndex: 450 }} />
       <ChangeView center={mapCenter} zoom={14} />
 
       {/* CartoDB Dark Matter tiles (Perfecto para la estética premium oscura del Dashboard) */}
@@ -141,21 +213,30 @@ const RouteMap = ({ orders = [], drivers = [], activeDriverLocations = {}, wareh
           const startPoint = [warehouseCoords.lat, warehouseCoords.lng];
           const driverPoint = [parseFloat(liveLoc.lat), parseFloat(liveLoc.lng)];
           const clientPoint = [parseFloat(order.cliente_latitud), parseFloat(order.cliente_longitud)];
+          const route = routes[order.id] || {};
 
           return (
             <React.Fragment key={order.id}>
-              {/* Ruta completada por el chofer hasta su posición actual (Gris azulado) */}
+              {/* Ruta completada por el chofer hasta su posición actual */}
               <Polyline 
-                positions={[startPoint, driverPoint]} 
+                positions={route.toDriver || buildTrafficSafeRoute(startPoint, driverPoint)} 
                 color="#4facfe" 
-                dashArray="5, 10" 
-                weight={2} 
-              />
-              {/* Ruta restante hasta llegar al cliente (Cian Neón sólido) */}
-              <Polyline 
-                positions={[driverPoint, clientPoint]} 
-                color="#00f2fe" 
+                dashArray="6, 10" 
                 weight={3} 
+                opacity={0.75}
+                pane="routePane"
+                lineCap="round"
+                lineJoin="round"
+              />
+              {/* Ruta restante hasta llegar al cliente */}
+              <Polyline 
+                positions={route.toClient || buildTrafficSafeRoute(driverPoint, clientPoint)} 
+                color="#00f2fe" 
+                weight={4} 
+                opacity={0.95}
+                pane="routePane"
+                lineCap="round"
+                lineJoin="round"
               />
             </React.Fragment>
           );
