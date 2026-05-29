@@ -16,6 +16,8 @@ import KpiCard from '../components/dashboard/KpiCard';
 import OrderCard from '../components/dashboard/OrderCard';
 import CreateOrderModal from '../components/dashboard/CreateOrderModal';
 import AssignDriverModal from '../components/dashboard/AssignDriverModal';
+import { buildSelectOptions } from '../utils/selectOptions';
+import { buildDriverLocationMap } from '../utils/locationUtils';
 import styles from '../styles/Dashboard.module.css';
 
 const Dashboard = () => {
@@ -45,10 +47,7 @@ const Dashboard = () => {
   const [assignForm, setAssignForm] = useState({ repartidor_id: '' });
 
   // Mapear localizaciones de choferes activas para el mapa
-  const activeDriverLocations = driverLocations.reduce((acc, loc) => {
-    acc[loc.repartidor_id] = { lat: loc.latitud, lng: loc.longitud };
-    return acc;
-  }, {});
+  const activeDriverLocations = buildDriverLocationMap(driverLocations);
 
   // Calcular KPIs del Dashboard
   const kpis = {
@@ -116,20 +115,20 @@ const Dashboard = () => {
   };
 
   // Preparar opciones de selectors
-  const clientOptions = [
-    { value: '', label: 'Seleccionar Cliente...' },
-    ...clients.map(c => ({ value: c.id, label: `${c.nombre} (${c.direccion})` }))
-  ];
+  const clientOptions = buildSelectOptions(clients, {
+    placeholder: 'Seleccionar Cliente...',
+    mapper: (c) => ({ value: c.id, label: `${c.nombre} (${c.direccion})` })
+  });
 
-  const productOptions = [
-    { value: '', label: 'Seleccionar Producto...' },
-    ...products.map(p => ({ value: p.id, label: `${p.nombre} (Stock: ${p.stock})` }))
-  ];
+  const productOptions = buildSelectOptions(products, {
+    placeholder: 'Seleccionar Producto...',
+    mapper: (p) => ({ value: p.id, label: `${p.nombre} (Stock: ${p.stock})` })
+  });
 
-  const driverOptions = [
-    { value: '', label: 'Seleccionar Repartidor...' },
-    ...drivers.map(d => ({ value: d.id, label: d.nombre }))
-  ];
+  const driverOptions = buildSelectOptions(drivers, {
+    placeholder: 'Seleccionar Repartidor...',
+    mapper: (d) => ({ value: d.id, label: d.nombre })
+  });
 
   return (
     <div className={styles.container}>

@@ -1,4 +1,54 @@
 const db = require('../config/db');
+const { sendSuccess, sendError, sendNotFound, ensureRecordExists, ensureAffectedRows } = require('../utils/response');
+
+// 1. Extract Method: Función extraída para verificar y actualizar el stock de un producto
+const verificarYActualizarStock = async (connection, producto_id, cantidadSolicitada, res) => {
+  const [filasProducto] = await connection.query('SELECT stock, nombre FROM productos WHERE id = ? FOR UPDATE', [producto_id]);
+  
+  if (!ensureRecordExists(filasProducto, res, 'El producto seleccionado no existe.')) {
+    return false;
+  }
+
+  const productoEncontrado = filasProducto[0];
+  if (productoEncontrado.stock < cantidadSolicitada) {
+    sendError(res, 400, `Stock insuficiente para ${productoEncontrado.nombre}. Disponible: ${productoEncontrado.stock}, Solicitado: ${cantidadSolicitada}.`);
+    return false;
+  }
+
+  await connection.query('UPDATE productos SET stock = stock - ? WHERE id = ?', [cantidadSolicitada, producto_id]);
+  return true;
+};
+
+// 2. Replace Conditional with Polymorphism: Clases para manejar la actualización de estados
+class ActualizadorEstadoPedido {
+  constructor(id, estado) {
+    this.id = id;
+    this.estado = estado;
+    this.query = 'UPDATE pedidos SET estado = ?';
+    this.params = [estado];
+  }
+  
+  construirConsulta() {
+    this.params.push(this.id);
+    return { query: this.query + ' WHERE id = ?', params: this.params };
+  }
+}
+
+class ActualizadorEstadoEntregado extends ActualizadorEstadoPedido {
+  construirConsulta() {
+    this.query += ', fecha_entrega = CURRENT_TIMESTAMP';
+    return super.construirConsulta();
+  }
+}
+
+class CreadorActualizadorEstado {
+  static crear(id, estado) {
+    if (estado === 'entregado') {
+      return new ActualizadorEstadoEntregado(id, estado);
+    }
+    return new ActualizadorEstadoPedido(id, estado);
+  }
+}
 
 exports.getAllOrders = async (req, res, next) => {
   try {
@@ -14,10 +64,7 @@ exports.getAllOrders = async (req, res, next) => {
       ORDER BY p.id DESC
     `;
     const [orders] = await db.query(query);
-    res.status(200).json({
-      status: 'success',
-      data: orders
-    });
+    return sendSuccess(res, 200, { data: orders });
   } catch (error) {
     next(error);
   }
@@ -29,46 +76,30 @@ exports.createOrder = async (req, res, next) => {
     await connection.beginTransaction();
 
     const { cliente_id, producto_id, cantidad } = req.body;
-    const qty = parseInt(cantidad) || 1;
+    // 3. Rename Variable: qty -> cantidadSolicitada, prodRows -> filasProducto, producto -> productoEncontrado (Aplicado también en el Extract Method superior)
+    const cantidadSolicitada = parseInt(cantidad) || 1;
 
-    // 1. Verificar stock del producto
-    const [prodRows] = await connection.query('SELECT stock, nombre FROM productos WHERE id = ? FOR UPDATE', [producto_id]);
-    if (prodRows.length === 0) {
+    // Uso de Extract Method para encapsular la lógica compleja de stock
+    const stockActualizado = await verificarYActualizarStock(connection, producto_id, cantidadSolicitada, res);
+    if (!stockActualizado) {
       await connection.rollback();
-      return res.status(404).json({
-        status: 'error',
-        message: 'El producto seleccionado no existe.'
-      });
+      return;
     }
 
-    const producto = prodRows[0];
-    if (producto.stock < qty) {
-      await connection.rollback();
-      return res.status(400).json({
-        status: 'error',
-        message: `Stock insuficiente para ${producto.nombre}. Disponible: ${producto.stock}, Solicitado: ${qty}.`
-      });
-    }
-
-    // 2. Restar stock (ERP core logic!)
-    await connection.query('UPDATE productos SET stock = stock - ? WHERE id = ?', [qty, producto_id]);
-
-    // 3. Crear el pedido
     const [result] = await connection.query(
       'INSERT INTO pedidos (cliente_id, producto_id, cantidad, estado) VALUES (?, ?, ?, "pendiente")',
-      [cliente_id, producto_id, qty]
+      [cliente_id, producto_id, cantidadSolicitada]
     );
 
     await connection.commit();
 
-    res.status(201).json({
-      status: 'success',
+    return sendSuccess(res, 201, {
       message: 'Pedido creado y stock reservado correctamente.',
       data: {
         id: result.insertId,
         cliente_id,
         producto_id,
-        cantidad: qty,
+        cantidad: cantidadSolicitada,
         estado: 'pendiente'
       }
     });
@@ -82,26 +113,20 @@ exports.createOrder = async (req, res, next) => {
 
 exports.assignDriver = async (req, res, next) => {
   try {
-    const { id } = req.params; // Order ID
+    const { id } = req.params;
     const { repartidor_id } = req.body;
 
-    // Verificar que el pedido exista
     const [orderRows] = await db.query('SELECT id, estado FROM pedidos WHERE id = ?', [id]);
-    if (orderRows.length === 0) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Pedido no encontrado.'
-      });
+    if (!ensureRecordExists(orderRows, res, 'Pedido no encontrado.')) {
+      return;
     }
 
-    // Actualizar pedido a asignado y cambiar estado a 'en_ruta'
     await db.query(
       'UPDATE pedidos SET repartidor_id = ?, estado = "en_ruta" WHERE id = ?',
       [repartidor_id, id]
     );
 
-    res.status(200).json({
-      status: 'success',
+    return sendSuccess(res, 200, {
       message: 'Repartidor asignado y pedido puesto en ruta.'
     });
   } catch (error) {
@@ -112,28 +137,18 @@ exports.assignDriver = async (req, res, next) => {
 exports.updateOrderStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { estado } = req.body; // 'pendiente', 'en_ruta', 'entregado', 'incidencia'
+    const { estado } = req.body;
 
-    let query = 'UPDATE pedidos SET estado = ?';
-    const params = [estado];
-
-    if (estado === 'entregado') {
-      query += ', fecha_entrega = CURRENT_TIMESTAMP';
-    }
-
-    query += ' WHERE id = ?';
-    params.push(id);
+    // Uso de Replace Conditional with Polymorphism
+    const actualizador = CreadorActualizadorEstado.crear(id, estado);
+    const { query, params } = actualizador.construirConsulta();
 
     const [result] = await db.query(query, params);
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Pedido no encontrado.'
-      });
+    if (!ensureAffectedRows(result, res, 'Pedido no encontrado.')) {
+      return;
     }
 
-    res.status(200).json({
-      status: 'success',
+    return sendSuccess(res, 200, {
       message: `Estado del pedido actualizado a: ${estado}`
     });
   } catch (error) {
@@ -155,10 +170,7 @@ exports.getDriverOrders = async (req, res, next) => {
       ORDER BY p.id ASC
     `;
     const [orders] = await db.query(query, [driverId]);
-    res.status(200).json({
-      status: 'success',
-      data: orders
-    });
+    return sendSuccess(res, 200, { data: orders });
   } catch (error) {
     next(error);
   }

@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { MapPin, Search } from 'lucide-react';
 import Input from './Input';
 import Button from './Button';
+import { geocodeAddress } from '../../services/mapApi';
 import styles from '../../styles/common/LocationPicker.module.css';
 
 // Icono personalizado para el marcador
@@ -67,12 +68,7 @@ const LocationPicker = ({
     
     setIsSearching(true);
     try {
-      // Usamos Nominatim (OpenStreetMap) para geocodificación
-      // Limitamos la búsqueda al área de Tarija
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}, Tarija, Bolivia&format=json&limit=1&viewbox=-64.80,-21.60,-64.65,-21.50`
-      );
-      const results = await response.json();
+      const results = await geocodeAddress(searchQuery);
       
       if (results && results.length > 0) {
         const { lat, lon, display_name } = results[0];

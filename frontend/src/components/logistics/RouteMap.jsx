@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Pane, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { fetchOsrmRoute } from '../../services/mapApi';
 import styles from '../../styles/RouteMap.module.css';
 
 // Hook auxiliar para recalcular el centro del mapa cuando cambia
@@ -70,19 +71,6 @@ const buildTrafficSafeRoute = (start, end) => {
   }
 
   return [[startLat, startLng], [startLat, endLng], [endLat, endLng]];
-};
-
-const fetchOsrmRoute = async (from, to) => {
-  const coords = `${from[1]},${from[0]};${to[1]},${to[0]}`;
-  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
-  const response = await fetch(url);
-  const data = await response.json();
-
-  if (!data || data.code !== 'Ok' || !data.routes?.length) {
-    return null;
-  }
-
-  return data.routes[0].geometry.coordinates.map(([lng, lat]) => [lat, lng]);
 };
 
 const RouteMap = ({ orders = [], drivers = [], activeDriverLocations = {}, warehouseCoords }) => {

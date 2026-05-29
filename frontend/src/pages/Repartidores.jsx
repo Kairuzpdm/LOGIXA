@@ -8,6 +8,7 @@ import Button from '../components/common/Button';
 import Alert from '../components/common/Alert';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
+import { buildSelectOptions } from '../utils/selectOptions';
 import styles from '../styles/Repartidores.module.css';
 
 const Repartidores = () => {
@@ -153,10 +154,10 @@ const Repartidores = () => {
 
   
 
-  const driverOptions = [
-    { value: '', label: 'Seleccionar Repartidor Simulado...' },
-    ...drivers.map(d => ({ value: d.id, label: `Simular: ${d.nombre}` }))
-  ];
+  const driverOptions = buildSelectOptions(drivers, {
+    placeholder: 'Seleccionar Repartidor Simulado...',
+    mapper: (d) => ({ value: d.id, label: `Simular: ${d.nombre}` })
+  });
 
   return (
     <div className={styles.layout}>

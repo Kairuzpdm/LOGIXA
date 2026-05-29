@@ -1,40 +1,31 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { sendSuccess, sendError, sendConflict } = require('../utils/response');
 
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Buscar el usuario por email
     const [rows] = await db.query('SELECT * FROM usuarios WHERE email = ? AND activo = 1', [email]);
     if (rows.length === 0) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Credenciales inválidas o usuario inactivo.'
-      });
+      return sendError(res, 401, 'Credenciales inválidas o usuario inactivo.');
     }
 
     const user = rows[0];
 
-    // Verificar la contraseña
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({
-        status: 'error',
-        message: 'Credenciales inválidas.'
-      });
+      return sendError(res, 401, 'Credenciales inválidas.');
     }
 
-    // Generar el Token JWT
     const token = jwt.sign(
       { id: user.id, rol: user.rol, nombre: user.nombre },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '8h' }
     );
 
-    res.status(200).json({
-      status: 'success',
+    return sendSuccess(res, 200, {
       token,
       usuario: {
         id: user.id,
@@ -50,12 +41,8 @@ exports.login = async (req, res, next) => {
 
 exports.getDrivers = async (req, res, next) => {
   try {
-    // Listar todos los repartidores
     const [drivers] = await db.query('SELECT id, nombre, email, activo FROM usuarios WHERE rol = "repartidor"');
-    res.status(200).json({
-      status: 'success',
-      data: drivers
-    });
+    return sendSuccess(res, 200, { data: drivers });
   } catch (error) {
     next(error);
   }
@@ -65,13 +52,9 @@ exports.createDriver = async (req, res, next) => {
   try {
     const { nombre, email, password } = req.body;
 
-    // Verificar que el email no exista ya en la base de datos
     const [existing] = await db.query('SELECT id FROM usuarios WHERE email = ?', [email]);
     if (existing.length > 0) {
-      return res.status(409).json({
-        status: 'error',
-        message: 'Ya existe un usuario con ese correo electrónico.'
-      });
+      return sendConflict(res, 'Ya existe un usuario con ese correo electrónico.');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -80,8 +63,7 @@ exports.createDriver = async (req, res, next) => {
       [nombre, email, hashedPassword]
     );
 
-    res.status(201).json({
-      status: 'success',
+    return sendSuccess(res, 201, {
       data: {
         id: result.insertId,
         nombre,

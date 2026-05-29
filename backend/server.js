@@ -29,10 +29,15 @@ app.use('/api/tracker', require('./routes/trackerRoutes'));
 // Manejo centralizado de Errores (Ultimo middleware de Express)
 app.use(errorHandler);
 
-// Iniciar Servidor
-app.listen(PORT, () => {
-  console.log(`================================================================`);
-  console.log(`Servidor ejecutándose en: http://localhost:${PORT}`);
-  console.log(`Rutas API expuestas bajo: http://localhost:${PORT}/api/...`);
-  console.log(`================================================================`);
-});
+// Iniciar Servidor (solo si no es entorno de pruebas)
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`================================================================`);
+    console.log(`Servidor ejecutándose en: http://localhost:${PORT}`);
+    console.log(`Rutas API expuestas bajo: http://localhost:${PORT}/api/...`);
+    console.log(`================================================================`);
+  });
+}
+
+module.exports = app;
+

@@ -1,12 +1,13 @@
-const db = require('../config/db');
+const ProductRepository = require('../repositories/ProductRepository');
+const ProductDTO = require('../dtos/ProductDTO');
+const { sendSuccess, sendError, sendNotFound, sendConflict, ensureRecordExists, ensureAffectedRows } = require('../utils/response');
 
 exports.getAllProducts = async (req, res, next) => {
   try {
-    const [products] = await db.query('SELECT * FROM productos ORDER BY id DESC');
-    res.status(200).json({
-      status: 'success',
-      data: products
-    });
+    const products = await ProductRepository.findAll();
+    // Usamos el DTO para transformar la lista completa
+    const productsDTO = ProductDTO.fromList(products);
+    return sendSuccess(res, 200, { data: productsDTO });
   } catch (error) {
     next(error);
   }
@@ -15,19 +16,15 @@ exports.getAllProducts = async (req, res, next) => {
 exports.getProductById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const [rows] = await db.query('SELECT * FROM productos WHERE id = ?', [id]);
-    
-    if (rows.length === 0) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Producto no encontrado'
-      });
+    const rows = await ProductRepository.findById(id);
+
+    if (!ensureRecordExists(rows, res, 'Producto no encontrado')) {
+      return;
     }
 
-    res.status(200).json({
-      status: 'success',
-      data: rows[0]
-    });
+    // Usamos el DTO para transformar un producto individual
+    const productDTO = new ProductDTO(rows[0]);
+    return sendSuccess(res, 200, { data: productDTO });
   } catch (error) {
     next(error);
   }
@@ -36,33 +33,22 @@ exports.getProductById = async (req, res, next) => {
 exports.createProduct = async (req, res, next) => {
   try {
     const { nombre, descripcion, precio, stock, sku } = req.body;
-    
-    // Generar SKU único si no se proporciona
     const finalSku = sku || `SKU-${Date.now()}`;
 
-    const [result] = await db.query(
-      'INSERT INTO productos (nombre, descripcion, precio, stock, sku) VALUES (?, ?, ?, ?, ?)',
-      [nombre, descripcion, precio, stock, finalSku]
-    );
+    const insertId = await ProductRepository.create({ nombre, descripcion, precio, stock, sku: finalSku });
 
-    res.status(201).json({
-      status: 'success',
+    // Devolvemos el DTO como buena práctica
+    const newProductDTO = new ProductDTO({ 
+      id: insertId, nombre, descripcion, precio, stock, sku: finalSku 
+    });
+
+    return sendSuccess(res, 201, {
       message: 'Producto creado exitosamente',
-      data: {
-        id: result.insertId,
-        nombre,
-        descripcion,
-        precio,
-        stock,
-        sku: finalSku
-      }
+      data: newProductDTO
     });
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({
-        status: 'error',
-        message: 'El SKU o código de producto ya está registrado.'
-      });
+      return sendConflict(res, 'El SKU o código de producto ya está registrado.');
     }
     next(error);
   }
@@ -73,22 +59,17 @@ exports.updateProduct = async (req, res, next) => {
     const { id } = req.params;
     const { nombre, descripcion, precio, stock, sku } = req.body;
 
-    const [result] = await db.query(
-      'UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ?, sku = ? WHERE id = ?',
-      [nombre, descripcion, precio, stock, sku, id]
-    );
+    const result = await ProductRepository.update(id, { nombre, descripcion, precio, stock, sku });
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Producto no encontrado para actualizar.'
-      });
+    if (!ensureAffectedRows(result, res, 'Producto no encontrado para actualizar.')) {
+      return;
     }
 
-    res.status(200).json({
-      status: 'success',
+    const updatedProductDTO = new ProductDTO({ id, nombre, descripcion, precio, stock, sku });
+
+    return sendSuccess(res, 200, {
       message: 'Producto actualizado exitosamente',
-      data: { id, nombre, descripcion, precio, stock, sku }
+      data: updatedProductDTO
     });
   } catch (error) {
     next(error);
@@ -98,17 +79,13 @@ exports.updateProduct = async (req, res, next) => {
 exports.deleteProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const [result] = await db.query('DELETE FROM productos WHERE id = ?', [id]);
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Producto no encontrado'
-      });
+    const result = await ProductRepository.delete(id);
+
+    if (!ensureAffectedRows(result, res, 'Producto no encontrado')) {
+      return;
     }
 
-    res.status(200).json({
-      status: 'success',
+    return sendSuccess(res, 200, {
       message: 'Producto eliminado correctamente'
     });
   } catch (error) {

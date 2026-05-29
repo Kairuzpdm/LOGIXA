@@ -1,12 +1,10 @@
 const db = require('../config/db');
+const { sendSuccess, sendError, sendNotFound, sendConflict, ensureRecordExists, ensureAffectedRows } = require('../utils/response');
 
 exports.getAllClients = async (req, res, next) => {
   try {
     const [clients] = await db.query('SELECT * FROM clientes ORDER BY id DESC');
-    res.status(200).json({
-      status: 'success',
-      data: clients
-    });
+    return sendSuccess(res, 200, { data: clients });
   } catch (error) {
     next(error);
   }
@@ -16,18 +14,12 @@ exports.getClientById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const [rows] = await db.query('SELECT * FROM clientes WHERE id = ?', [id]);
-    
-    if (rows.length === 0) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Cliente no encontrado'
-      });
+
+    if (!ensureRecordExists(rows, res, 'Cliente no encontrado')) {
+      return;
     }
 
-    res.status(200).json({
-      status: 'success',
-      data: rows[0]
-    });
+    return sendSuccess(res, 200, { data: rows[0] });
   } catch (error) {
     next(error);
   }
@@ -42,8 +34,7 @@ exports.createClient = async (req, res, next) => {
       [nombre, email, telefono, direccion, latitud, longitud]
     );
 
-    res.status(201).json({
-      status: 'success',
+    return sendSuccess(res, 201, {
       message: 'Cliente registrado exitosamente',
       data: {
         id: result.insertId,
@@ -57,10 +48,7 @@ exports.createClient = async (req, res, next) => {
     });
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({
-        status: 'error',
-        message: 'El correo electrónico ya está registrado con otro cliente.'
-      });
+      return sendConflict(res, 'El correo electrónico ya está registrado con otro cliente.');
     }
     next(error);
   }
@@ -76,15 +64,11 @@ exports.updateClient = async (req, res, next) => {
       [nombre, email, telefono, direccion, latitud, longitud, id]
     );
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Cliente no encontrado para actualizar.'
-      });
+    if (!ensureAffectedRows(result, res, 'Cliente no encontrado para actualizar.')) {
+      return;
     }
 
-    res.status(200).json({
-      status: 'success',
+    return sendSuccess(res, 200, {
       message: 'Cliente actualizado correctamente',
       data: { id, nombre, email, telefono, direccion, latitud, longitud }
     });
@@ -97,16 +81,12 @@ exports.deleteClient = async (req, res, next) => {
   try {
     const { id } = req.params;
     const [result] = await db.query('DELETE FROM clientes WHERE id = ?', [id]);
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Cliente no encontrado'
-      });
+
+    if (!ensureAffectedRows(result, res, 'Cliente no encontrado')) {
+      return;
     }
 
-    res.status(200).json({
-      status: 'success',
+    return sendSuccess(res, 200, {
       message: 'Cliente eliminado correctamente'
     });
   } catch (error) {
